@@ -1,0 +1,976 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VASKA · Visual Designer</title>
+  <style>
+    @font-face {
+      font-family: 'Yakuhei';
+      src: local('汉仪雅酷黑'), url('font-yakuhei.ttf') format('truetype');
+      font-weight: 900;
+      font-style: normal;
+    }
+    @font-face {
+      font-family: 'Futura';
+      src: local('Futura BT'), local('Futura');
+      font-weight: 400;
+    }
+    @font-face {
+      font-family: 'Futura';
+      src: local('Futura BT Bold'), local('Futura-Bold');
+      font-weight: 700;
+    }
+    @font-face {
+      font-family: 'Futura';
+      src: local('Futura BT Black'), local('Futura-Black');
+      font-weight: 900;
+    }
+    @font-face {
+      font-family: 'Inter';
+      src: local('Inter-Regular');
+      font-weight: 400;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --black: #0a0a0a;
+      --white: #ffffff;
+      --red: #E60023;
+      --red-dark: #B8001D;
+      --gray: #1a1a1a;
+      --gap-stat: 36px;
+    }
+    html { scroll-behavior: smooth; scroll-padding-top: 120px; }
+    body {
+      font-family: 'Futura', 'Helvetica Neue', system-ui, sans-serif;
+      background: var(--black); color: var(--white); overflow-x: hidden;
+      line-height: 1.3; -webkit-font-smoothing: antialiased;
+    }
+    ::selection { background: var(--red); color: var(--white); }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--black); }
+    ::-webkit-scrollbar-thumb { background: var(--red); }
+
+    .skip-link {
+      position: absolute; top: -100%; left: 0; z-index: 9999;
+      padding: 12px 24px; background: var(--red); color: var(--white);
+      font-family: 'Futura', sans-serif; font-size: 14px; font-weight: 700;
+      text-decoration: none; letter-spacing: 0.1em;
+    }
+    .skip-link:focus { top: 0; }
+    :focus-visible { outline: 2px solid var(--red); outline-offset: 2px; }
+    a:focus-visible, button:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+    a:not(:focus-visible), button:not(:focus-visible) { outline: none; }
+    .project-card:focus-visible { outline: none; }
+    .project-card[id]:focus-visible { outline: none !important; }
+    .project-card[id] {
+      scroll-margin-top: 120px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+      html { scroll-behavior: auto; }
+    }
+    .container { max-width: 1700px; margin: 0 auto; padding: 0 60px; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      height: 72px; display: flex; align-items: center; justify-content: space-between;
+      padding: 0 60px; background: transparent;
+      border-bottom: 1px solid rgba(255,255,255,0.0); transition: all 0.4s ease;
+    }
+    nav.scrolled { background: rgba(10,10,10,0.95); border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .nav-logo { font-family: 'Futura', sans-serif; font-size: 18px; font-weight: 900; letter-spacing: 0.25em; color: var(--white); text-decoration: none; }
+    .nav-logo em { font-style: normal; color: var(--red); }
+    .nav-center span { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); padding: 0 20px; border-left: 1px solid rgba(255,255,255,0.1); }
+    .nav-right { display: flex; align-items: center; gap: 32px; }
+    .nav-links { display: flex; align-items: center; gap: 36px; }
+    .nav-links a {
+      font-family: 'Courier New', monospace;
+      font-size: 15px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: rgba(255,255,255,0.5); text-decoration: none;
+      transition: color 0.2s; font-weight: 600;
+    }
+    .nav-links a:hover { color: var(--white); }
+    .nav-cta {
+      font-family: 'Courier New', monospace; font-size: 11px;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--black); background: var(--red);
+      padding: 12px 22px; text-decoration: none;
+      transition: all 0.2s; min-height: 44px;
+      display: inline-flex; align-items: center; font-weight: 700;
+    }
+    .nav-cta:hover { background: var(--white); color: var(--black); }
+    .nav-menu-btn { display: none; background: none; border: none; color: var(--white); cursor: pointer; padding: 8px; min-width: 44px; min-height: 44px; }
+    .nav-menu-btn svg { width: 18px; height: 18px; }
+
+    /* HERO — Video Background */
+    .hero {
+      min-height: 100vh; position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+      padding-top: 72px; background: var(--black);
+    }
+    .hero-video {
+      position: absolute; inset: 0; z-index: 1;
+      overflow: hidden;
+    }
+    .hero-video video {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .hero-overlay {
+      position: absolute; inset: 0; z-index: 2;
+      background: linear-gradient(
+        to bottom,
+        rgba(10,10,10,0.4) 0%,
+        rgba(10,10,10,0.2) 40%,
+        rgba(10,10,10,0.3) 70%,
+        rgba(10,10,10,0.85) 100%
+      );
+      backdrop-filter: blur(8px) saturate(1.2);
+      -webkit-backdrop-filter: blur(8px) saturate(1.2);
+    }
+    .hero-grid {
+      position: absolute; inset: 0; z-index: 3; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 120px 120px;
+    }
+    .hero-top-bar { position: absolute; top: 72px; left: 0; right: 0; height: 1px; background: rgba(255,255,255,0.06); z-index: 4; }
+    .hud { position: absolute; z-index: 4; }
+    .hud-dot { width: 6px; height: 6px; background: var(--red); border-radius: 50%; opacity: 0.6; }
+    .hud-dot::after { content: ''; position: absolute; inset: -3px; border: 1px solid var(--red); border-radius: 50%; opacity: 0.25; }
+    .hud-dot-1 { top: 20%; right: 15%; }
+    .hud-dot-2 { bottom: 25%; left: 10%; width: 4px; height: 4px; background: var(--white); opacity: 0.15; }
+    .hud-corner { position: absolute; width: 28px; height: 28px; z-index: 4; }
+    .hud-corner::before, .hud-corner::after { content: ''; position: absolute; background: rgba(255,255,255,0.1); }
+    .hud-corner::before { width: 100%; height: 1px; }
+    .hud-corner::after { width: 1px; height: 100%; }
+    .hud-corner-tl { top: 110px; left: 50px; }
+    .hud-corner-tl::before { top: 0; left: 0; }
+    .hud-corner-tl::after { top: 0; left: 0; }
+    .hud-corner-br { bottom: 90px; right: 50px; }
+    .hud-corner-br::before { bottom: 0; right: 0; }
+    .hud-corner-br::after { bottom: 0; right: 0; }
+
+    .hero-content {
+      position: relative; z-index: 5;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 0 80px;
+      text-align: center;
+      flex: 1;
+      justify-content: center;
+    }
+    .hero-meta {
+      display: flex; align-items: center; gap: 4px;
+      margin-bottom: 0; flex-wrap: wrap;
+      position: absolute;
+      top: 70px;
+      left: 80px;
+      right: 80px;
+      display: flex;
+      justify-content: center;
+      justify-content: center;
+    }
+    .hero-meta-item {
+      font-family: 'Courier New', monospace; font-size: 10px;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(255,255,255,0.6); padding: 5px 12px;
+      border-left: 1px solid rgba(255,255,255,0.15);
+      backdrop-filter: blur(4px);
+    }
+    .hero-meta-item:first-child { border-left: none; padding-left: 0; }
+    .hero-meta-item.accent { color: var(--red); }
+    .hero-meta-label {
+      font-family: 'Courier New', monospace;
+      font-size: 9px; letter-spacing: 0.15em; color: rgba(255,255,255,0.35);
+      margin-left: 16px;
+    }
+
+    /* Giant horizontal title with 2026 background */
+    .hero-title-wrap { position: relative; margin-bottom: 36px; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 1.2em; }
+    .hero-year-bg {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Futura', sans-serif;
+      font-size: clamp(13rem, 32vw, 30rem);
+      font-weight: 900; line-height: 0.75;
+      letter-spacing: -0.06em;
+      color: rgba(0,0,0,0.30);
+      -webkit-text-stroke: 0;
+      user-select: none; pointer-events: none; z-index: 0;
+      white-space: nowrap;
+    }
+    .hero-title-main {
+      position: relative; z-index: 2;
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(4rem, 9vw, 9rem);
+      font-weight: 900; letter-spacing: 0.02em;
+      line-height: 0.9; color: transparent;
+      -webkit-text-stroke: 2px rgba(255,255,255,0.9);
+      transition: -webkit-text-stroke-color 0.3s ease;
+    }
+    .hero-title-main span { color: var(--red); -webkit-text-stroke: 0; }
+    .hero-title-main:hover { -webkit-text-stroke-color: rgba(255,255,255,0.15); }
+    .hero-title-main:hover span { color: var(--red); }
+
+    .hero-sub {
+      font-family: 'Futura', sans-serif;
+      font-size: clamp(12px, 1.2vw, 15px);
+      font-weight: 300; color: rgba(255,255,255,0.55);
+      line-height: 1.8; max-width: 600px;
+      white-space: nowrap; overflow: hidden;
+      margin-top: 90px;
+      margin-bottom: 48px;
+    }
+    .hero-ctas { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; justify-content: center; }
+
+    /* Primary CTA — 查看作品 */
+    .btn-red {
+      display: inline-flex; align-items: center; gap: 14px;
+      padding: 20px 44px;
+      background: var(--red); color: var(--white);
+      font-family: 'Futura', sans-serif; font-size: 13px;
+      font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      min-height: 56px;
+      position: relative; overflow: hidden;
+    }
+    .btn-outline > span { position: relative; z-index: 1; transition: color 0.3s; color: var(--white); }
+    .btn-red::before {
+      content: '';
+      position: absolute; top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: var(--white);
+      transition: left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      z-index: 0;
+    }
+    .btn-red:hover::before { left: 0; }
+    .btn-red > span, .btn-red svg { position: relative; z-index: 1; transition: color 0.3s; }
+    .btn-red:hover > span, .btn-red:hover svg { color: var(--red); }
+    .btn-red:hover { box-shadow: 0 0 0 4px rgba(230,0,35,0.15); }
+
+    /* Secondary CTA — 联系我 */
+    .btn-outline {
+      display: inline-flex; align-items: center; gap: 14px;
+      padding: 20px 44px;
+      background: transparent;
+      font-family: 'Futura', sans-serif; font-size: 13px;
+      font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      text-decoration: none;
+      border: 1px solid rgba(255,255,255,0.25);
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      min-height: 56px;
+      position: relative; overflow: hidden;
+    }
+    .btn-outline > span { position: relative; z-index: 1; transition: color 0.3s; color: var(--white); }
+    .btn-outline::after {
+      content: '';
+      position: absolute; bottom: 0; left: 0;
+      width: 100%; height: 1px;
+      background: var(--red);
+      transform: scaleX(0); transform-origin: left;
+      transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+    .btn-outline:hover::after { transform: scaleX(1); }
+    .btn-outline:hover > span { color: var(--white); }
+    .scroll-indicator {
+      position: absolute; bottom: 48px; left: 50%;
+      transform: translateX(-50%); z-index: 5;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .scroll-line { width: 1px; height: 60px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; }
+    .scroll-line::after { content: ''; position: absolute; top: -100%; left: 0; width: 100%; height: 50%; background: var(--red); animation: scrollDown 1.8s ease-in-out infinite; }
+    @keyframes scrollDown { 0% { top: -50%; } 100% { top: 100%; } }
+    .scroll-text { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase; color: rgba(255,255,255,0.25); writing-mode: vertical-rl; }
+
+    /* SECTION COMMON */
+    section { padding: 160px 0; position: relative; content-visibility: auto; contain-intrinsic-size: 0 700px; }
+    .section-label {
+      font-family: 'Courier New', monospace; font-size: 10px;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 28px;
+      display: flex; align-items: center; gap: 16px;
+    }
+    .section-label::before { content: ''; width: 32px; height: 1px; background: var(--red); }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .section-title {
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(3rem, 8vw, 7rem);
+      font-weight: 900; line-height: 0.92;
+      letter-spacing: -0.04em; color: var(--white);
+      margin-bottom: 84px;
+    }
+    .section-title .red { color: var(--red); }
+
+    /* ABOUT */
+    #about { background: var(--white); color: var(--black); position: relative; overflow: hidden; }
+    #about .section-label { color: var(--red); }
+    #about .section-label::before { background: var(--red); }
+    #about .section-label::after { background: rgba(0,0,0,0.08); }
+    #about .section-title { color: var(--black); }
+    #about .section-title .red { color: var(--red); }
+    .about-bg {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(18rem, 45vw, 50rem);
+      font-weight: 900; color: var(--black); opacity: 0.025;
+      white-space: nowrap; pointer-events: none; letter-spacing: -0.06em;
+    }
+    .about-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 140px; align-items: start;
+      position: relative; z-index: 2;
+    }
+    .about-heading {
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(2.6rem, 5.5vw, 5rem);
+      font-weight: 900; line-height: 1.12;
+      letter-spacing: -0.03em; color: var(--black);
+      margin-bottom: 40px;
+    }
+    .about-heading .red { color: var(--red); }
+    .about-text {
+      font-size: 14px; color: rgba(13,13,13,0.5);
+      line-height: 1.85; max-width: 440px; font-weight: 300;
+    }
+    .about-right { display: flex; flex-direction: column; border-top: 3px solid var(--black); margin-left: 60px; }
+    .about-stat {
+      display: grid; grid-template-columns: 110px 1fr;
+      gap: 4px; padding: 40px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.08);
+      align-items: center;
+    }
+    .about-stat-num {
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: 56px; font-weight: 900; color: var(--red); line-height: 1;
+    }
+    .about-stat-info {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      text-align: right;
+      padding-top: 2px;
+    }
+    .about-stat-label {
+      font-family: 'Courier New', monospace;
+      font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(0,0,0,0.35); margin-bottom: 6px;
+    }
+    .about-stat-value {
+      font-family: 'Futura', sans-serif;
+      font-size: 14px; font-weight: 500; color: var(--black);
+    }
+
+    /* EXPERIENCE */
+    #experience { background: var(--black); }
+    .exp-list { display: flex; flex-direction: column; }
+    .exp-item {
+      display: grid; grid-template-columns: 110px 1fr auto;
+      gap: 80px; align-items: center;
+      padding: 52px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      transition: all 0.35s ease; position: relative;
+    }
+    .exp-item:first-child { border-top: 1px solid rgba(255,255,255,0.05); }
+    .exp-item:hover { padding-left: 32px; }
+    .exp-item::before {
+      content: ''; position: absolute; left: 0; top: 0;
+      width: 0; height: 100%; background: var(--red); opacity: 0.04;
+      transition: width 0.4s ease;
+    }
+    .exp-item:hover::before { width: 100%; }
+    .exp-year {
+      font-family: 'Courier New', monospace;
+      font-size: 12px; letter-spacing: 0.15em; color: var(--red); padding-top: 2px;
+    }
+    .exp-body h3 {
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(1.6rem, 3vw, 2.6rem);
+      font-weight: 900; letter-spacing: -0.01em;
+      color: var(--white); line-height: 1.05; margin-bottom: 10px;
+    }
+    .exp-body .role {
+      font-family: 'Courier New', monospace;
+      font-size: 10px; font-weight: 400;
+      color: rgba(255,255,255,0.35); letter-spacing: 0.2em;
+      text-transform: uppercase; margin-bottom: 16px;
+    }
+    .exp-body p {
+      font-size: 14px; color: rgba(255,255,255,0.35);
+      line-height: 1.75; max-width: 480px; font-weight: 300;
+    }
+    .exp-arrow {
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: 32px; font-weight: 900;
+      color: rgba(255,255,255,0.06);
+      transition: all 0.3s; align-self: start; padding-top: 8px;
+    }
+    .exp-item:hover .exp-arrow { color: var(--red); transform: translateX(10px); }
+
+    /* PROJECTS */
+    #projects { background: var(--black); padding-bottom: 0; }
+    .projects-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .project-card { position: relative; overflow: hidden; background: var(--gray); aspect-ratio: 16/11; cursor: pointer; }
+    .project-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s cubic-bezier(0.25, 0.46, 0.45, 0.94); filter: grayscale(40%) contrast(1.05); }
+    #card-gift img { object-position: top; }
+    .project-card:hover img { transform: scale(1.06); filter: grayscale(0%) contrast(1); }
+    .project-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.2) 55%, transparent 100%);
+      display: flex; flex-direction: column; justify-content: flex-end;
+      padding: 48px; transition: background 0.4s ease;
+    }
+    .project-card:hover .project-overlay { background: linear-gradient(to top, rgba(230,0,35,0.88) 0%, rgba(230,0,35,0.25) 60%, transparent 100%); }
+    .project-cat {
+      font-family: 'Courier New', monospace; font-size: 9px;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 10px; transition: color 0.3s;
+    }
+    .project-card:hover .project-cat { color: rgba(255,255,255,0.85); }
+    .project-name {
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(1.4rem, 2.6vw, 2.4rem);
+      font-weight: 900; letter-spacing: -0.02em;
+      color: var(--white); line-height: 1.05; margin-bottom: 10px;
+    }
+    .project-desc {
+      font-size: 13px; color: rgba(255,255,255,0.45);
+      line-height: 1.6; max-width: 380px; font-weight: 300;
+      opacity: 0; transform: translateY(12px);
+      transition: all 0.35s 0.1s ease;
+    }
+    .project-card:hover .project-desc { opacity: 1; transform: translateY(0); }
+    .project-year {
+      position: absolute; top: 24px; right: 24px;
+      font-family: 'Courier New', monospace; font-size: 10px;
+      letter-spacing: 0.15em; color: rgba(255,255,255,0.35);
+      background: rgba(10,10,10,0.75); padding: 5px 12px;
+    }
+    .project-featured { grid-column: 1 / -1; aspect-ratio: 21/9; }
+    .project-featured .project-name { font-size: clamp(2.2rem, 5vw, 4.5rem); }
+
+    /* SKILLS */
+    #skills { background: var(--white); color: var(--black); position: relative; overflow: hidden; }
+    #skills .section-label { color: var(--red); }
+    #skills .section-label::before { background: var(--red); }
+    #skills .section-label::after { background: rgba(0,0,0,0.08); }
+    #skills .section-title { color: var(--black); }
+    .skills-bg {
+      position: absolute; top: -15%; right: -3%;
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(18rem, 50vw, 65rem);
+      font-weight: 900; color: var(--black); opacity: 0.02;
+      pointer-events: none; line-height: 1; letter-spacing: -0.06em;
+    }
+    .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; position: relative; z-index: 2; }
+    .skill-group { background: var(--black); color: var(--white); padding: 56px 40px; transition: all 0.35s ease; }
+    .skill-group:hover { background: var(--red); }
+    .skill-group-title {
+      font-family: 'Courier New', monospace; font-size: 9px;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--red); margin-bottom: 40px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      transition: color 0.3s;
+    }
+    .skill-group:hover .skill-group-title { color: rgba(255,255,255,0.7); border-color: rgba(255,255,255,0.15); }
+    .skill-item-row {
+      display: grid; grid-template-columns: 130px 1fr 48px; align-items: center;
+      padding: 18px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .skill-item-row:last-child { border-bottom: none; }
+    .skill-name {
+      font-family: 'Futura', sans-serif; font-size: 13px; font-weight: 700;
+      color: var(--white); letter-spacing: 0.02em;
+    }
+    .skill-group:hover .skill-name { color: var(--white); }
+    .skill-track { width: 100%; height: 2px; background: rgba(255,255,255,0.08); position: relative; overflow: hidden; }
+    .skill-fill { height: 100%; background: var(--red); transition: width 1.2s ease; }
+    .skill-group:hover .skill-fill { background: var(--white); }
+    .skill-pct { font-family: 'Courier New', monospace; font-size: 11px; color: rgba(255,255,255,0.3); min-width: 28px; text-align: right; }
+    .skill-group:hover .skill-pct { color: rgba(255,255,255,0.85); }
+    .soft-banner {
+      margin-top: 3px; background: var(--red); color: var(--white);
+      padding: 64px 60px;
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 56px;
+      position: relative; z-index: 2;
+    }
+    .soft-name { font-family: 'Yakuhei', 'Futura', sans-serif; font-size: 22px; font-weight: 900; letter-spacing: 0.02em; margin-bottom: 10px; }
+    .soft-desc { font-size: 13px; color: rgba(255,255,255,0.65); line-height: 1.6; font-weight: 300; }
+
+    /* CONTACT */
+    #contact { background: var(--red); color: var(--white); padding: 160px 0 100px; position: relative; overflow: hidden; }
+    .contact-grid-bg {
+      position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
+      background-size: 80px 80px;
+    }
+    .contact-bg-text {
+      position: absolute; bottom: -80px; left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(14rem, 40vw, 48rem);
+      font-weight: 900; color: rgba(255,255,255,0.06);
+      white-space: nowrap; pointer-events: none; letter-spacing: -0.06em;
+    }
+    .contact-inner {
+      position: relative; z-index: 2;
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 140px; align-items: start;
+    }
+    .contact-label {
+      font-family: 'Courier New', monospace; font-size: 10px;
+      letter-spacing: 0.3em; text-transform: uppercase;
+      color: rgba(255,255,255,0.5); margin-bottom: 24px;
+    }
+    .contact-title {
+      font-family: 'Yakuhei', 'Futura', sans-serif;
+      font-size: clamp(4rem, 10vw, 10rem);
+      font-weight: 900; line-height: 1.1;
+      letter-spacing: -0.05em; color: var(--white); margin-bottom: 28px;
+    }
+    .contact-title .dark { color: rgba(255,255,255,0.35); }
+    .contact-desc {
+      font-size: 15px; color: rgba(255,255,255,0.8);
+      line-height: 1.75; max-width: 420px; margin-bottom: 48px; font-weight: 300;
+    }
+    .contact-cards { display: flex; flex-direction: column; gap: 12px; margin-bottom: 48px; }
+    .contact-card {
+      display: flex; align-items: center; gap: 24px;
+      padding: 22px 28px; background: rgba(0,0,0,0.1);
+      border: 1px solid rgba(255,255,255,0.08);
+      text-decoration: none; color: var(--white);
+      transition: all 0.25s ease; min-height: 44px;
+    }
+    .contact-card:hover { background: var(--black); border-color: var(--black); transform: translateX(14px); }
+    .contact-card-icon {
+      width: 40px; height: 40px; background: rgba(255,255,255,0.08);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; transition: background 0.25s;
+    }
+    .contact-card:hover .contact-card-icon { background: var(--white); }
+    .contact-card-icon svg { width: 16px; height: 16px; stroke: var(--white); }
+    .contact-card:hover .contact-card-icon svg { stroke: var(--black); }
+    .contact-card-label {
+      font-family: 'Courier New', monospace; font-size: 9px;
+      letter-spacing: 0.25em; text-transform: uppercase; opacity: 0.4;
+    }
+    .contact-card-value { font-family: 'Yakuhei', 'Futura', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: 0.03em; }
+    .contact-btn {
+      display: inline-flex; align-items: center; gap: 14px;
+      padding: 20px 44px; background: var(--black); color: var(--white);
+      font-family: 'Yakuhei', 'Futura', sans-serif; font-size: 14px;
+      font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase;
+      text-decoration: none; border: 2px solid var(--black);
+      transition: all 0.25s ease; cursor: pointer; min-height: 56px;
+    }
+    .contact-btn:hover { background: transparent; color: var(--white); border-color: var(--white); }
+    .footer {
+      position: relative; z-index: 2; margin-top: 100px; padding-top: 28px;
+      border-top: 1px solid rgba(255,255,255,0.12);
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+    }
+    .footer-text { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.2em; color: rgba(255,255,255,0.4); }
+    .footer-tag { font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 0.2em; color: rgba(255,255,255,0.3); }
+
+    /* REVEAL */
+    .reveal { opacity: 0; transform: translateY(50px); transition: opacity 0.8s ease, transform 0.8s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+
+    /* MOBILE */
+    @media (max-width: 1024px) {
+      .hero { grid-template-columns: 1fr; }
+      .about-grid { grid-template-columns: 1fr; gap: 60px; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .project-featured { aspect-ratio: 16/9; }
+      .skills-grid { grid-template-columns: repeat(2, 1fr); }
+      .soft-banner { grid-template-columns: repeat(2, 1fr); gap: 32px; }
+      .contact-inner { grid-template-columns: 1fr; gap: 60px; }
+      .exp-item { grid-template-columns: 90px 1fr; gap: 24px; }
+      .exp-arrow { display: none; }
+      .container { padding: 0 32px; }
+      .hero-content { padding: 0 32px; }
+      .hero-meta { gap: 2px; }
+      .hero-meta-item { font-size: 9px; padding: 4px 8px; }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 0 24px; }
+      .nav-center { display: none; }
+      .nav-links { display: none; }
+      .nav-menu-btn { display: flex; align-items: center; justify-content: center; }
+      section { padding: 80px 0; }
+      .projects-grid { grid-template-columns: 1fr; }
+      .skills-grid { grid-template-columns: 1fr; }
+      .soft-banner { grid-template-columns: 1fr; padding: 32px; }
+      .hero-meta { gap: 0; }
+      .hero-meta-item { padding: 0 10px; font-size: 9px; }
+      .hud-corner { display: none; }
+      .hero-title-main { font-size: clamp(3rem, 15vw, 5rem); }
+      .hero-year-bg { font-size: clamp(9rem, 40vw, 14rem); }
+    }
+    @media (hover: none) and (pointer: coarse) {
+      .nav-links a, .btn-red, .btn-outline, .contact-card, .contact-btn, .nav-menu-btn { min-height: 48px; }
+      .nav-links { flex-direction: column; gap: 16px; }
+      .nav-links a { font-size: 18px; padding: 12px 0; font-weight: 600; }
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">跳转到主要内容</a>
+
+  <!-- NAV -->
+  <nav role="navigation" aria-label="主导航">
+    <a href="#" class="nav-logo">VASK<em>A</em></a>
+    <div class="nav-center"><span>PORTFOLIO 2026</span></div>
+    <div class="nav-right">
+      <div class="nav-links">
+        <a href="#about">关于</a>
+        <a href="#experience">经历</a>
+        <a href="#projects">项目</a>
+        <a href="#skills">能力</a>
+        <a href="#contact" class="nav-cta">联系我</a>
+      </div>
+      <button class="nav-menu-btn" onclick="toggleMenu()" aria-label="打开菜单">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </div>
+  </nav>
+
+  <main id="main">
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-video">
+      <video autoplay muted loop playsinline >
+        <source src="hero-video.mp4" type="video/mp4">
+      </video>
+    </div>
+    <div class="hero-overlay"></div>
+    <div class="hero-grid"></div>
+    <div class="hero-top-bar"></div>
+    <div class="hud hud-dot hud-dot-1"></div>
+    <div class="hud hud-dot hud-dot-2"></div>
+    <div class="hud-corner hud-corner-tl"></div>
+    <div class="hud-corner hud-corner-br"></div>
+
+    <div class="hero-content">
+      <div class="hero-meta reveal">
+        <span class="hero-meta-item accent">视觉设计师</span>
+        <span class="hero-meta-item accent">AI设计师</span>
+        <span class="hero-meta-item accent">品牌设计师</span>
+        <span class="hero-meta-label">菲律宾 · 马尼拉 · 2026</span>
+      </div>
+
+      <div class="hero-title-wrap reveal reveal-delay-1">
+        <div class="hero-year-bg" aria-hidden="true">2026</div>
+        <h1 class="hero-title-main">VASKA<span>RESUME</span></h1>
+      </div>
+
+      <p class="hero-sub reveal reveal-delay-2">
+        深耕视觉设计领域，融合传统技艺与前沿AI技术，为品牌打造独特而专业的创意解决方案。
+      </p>
+
+      <div class="hero-ctas reveal reveal-delay-3">
+        <a href="#projects" class="btn-red">
+          <span>查看作品</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </a>
+        <a href="#contact" class="btn-outline"><span>联系我</span></a>
+      </div>
+    </div>
+
+    <div class="scroll-indicator">
+      <div class="scroll-line"></div>
+      <span class="scroll-text">Scroll</span>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="about-bg">VASKA</div>
+    <div class="container">
+      <div class="section-label reveal">01 · 关于</div>
+      <div class="about-grid">
+        <div class="reveal">
+          <h2 class="about-heading">
+            设计不只是<br><span class="red">视觉呈现</span>，<br>是策略与美的<br>双重表达
+          </h2>
+          <p class="about-text">
+            圣托马斯大学MFA在读，拥有5年+品牌视觉设计经验。擅长将传统设计方法论与AI生成技术相结合，为品牌提供从策略到执行的完整视觉解决方案。
+          </p>
+        </div>
+        <div class="about-right reveal reveal-delay-1">
+          <!-- 顺序：字数从少到多 -->
+          <div class="about-stat">
+            <span class="about-stat-num">AI</span>
+            <div class="about-stat-info">
+              <div class="about-stat-label">前沿技术</div>
+              <div class="about-stat-value">MJ / SD / JIMENG / CODEX</div>
+            </div>
+          </div>
+          <div class="about-stat">
+            <span class="about-stat-num">5+</span>
+            <div class="about-stat-info">
+              <div class="about-stat-label">设计经验</div>
+              <div class="about-stat-value">品牌视觉 / UI / 动效 / AI创作</div>
+            </div>
+          </div>
+          <div class="about-stat">
+            <span class="about-stat-num">50+</span>
+            <div class="about-stat-info">
+              <div class="about-stat-label">完成项目</div>
+              <div class="about-stat-value">品牌升级 / 发布会 / 视觉体系</div>
+            </div>
+          </div>
+          <div class="about-stat">
+            <span class="about-stat-num">MFA</span>
+            <div class="about-stat-info">
+              <div class="about-stat-label">艺术教育</div>
+              <div class="about-stat-value">圣托马斯大学 · 多媒体艺术硕士</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE (从早到晚) -->
+  <section id="experience">
+    <div class="container">
+      <div class="section-label reveal">02 · 经历</div>
+      <h2 class="section-title reveal">职业<span class="red">轨迹</span></h2>
+      <div class="exp-list">
+        <div class="exp-item reveal">
+          <span class="exp-year">2016—2020</span>
+          <div class="exp-body">
+            <h3>重庆学院 · 艺术设计学院</h3>
+            <div class="role">本科 · 平面设计</div>
+            <p>平面设计、海报设计、logo设计、字体设计、包装设计。</p>
+          </div>
+          <span class="exp-arrow">→</span>
+        </div>
+        <div class="exp-item reveal">
+          <span class="exp-year">2020—至今</span>
+          <div class="exp-body">
+            <h3>圣托马斯大学</h3>
+            <div class="role">Master of Fine Arts</div>
+            <p>多媒体艺术、壁画与雕塑设计、艺术鉴赏、非主流材料设计、转换设计。</p>
+          </div>
+          <span class="exp-arrow">→</span>
+        </div>
+        <div class="exp-item reveal">
+          <span class="exp-year">2021—2023</span>
+          <div class="exp-body">
+            <h3>OB体育</h3>
+            <div class="role">品牌设计组长</div>
+            <p>主导品牌视觉运营，制作球队官宣海报、赛事视觉体系、网页设计、发布会视觉，以及节日/品宣活动视频。</p>
+          </div>
+          <span class="exp-arrow">→</span>
+        </div>
+        <div class="exp-item reveal">
+          <span class="exp-year">2024—2025</span>
+          <div class="exp-body">
+            <h3>玖鼎集团</h3>
+            <div class="role">视觉设计师</div>
+            <p>负责集团全部门视觉设计，包括品牌手册、活动海报、网站H5、banner、节日礼盒包装、宣发视频等全链路设计产出。</p>
+          </div>
+          <span class="exp-arrow">→</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects">
+    <div class="container">
+      <div class="section-label reveal">03 · 项目</div>
+      <h2 class="section-title reveal">精选<span class="red">作品</span></h2>
+    </div>
+    <div class="projects-grid">
+      <a href="projects/sports_collider/index.html" class="project-card reveal" id="card-sports">
+        <img src="projects/sports_collider/thumbnails/01.jpg" alt="OB Sports 品牌设计" loading="lazy" width="1000" height="458">
+        <div class="project-overlay">
+          <span class="project-cat">品牌设计 · 旗舰项目</span>
+          <h3 class="project-name">欧宝体育 OB Sports 品牌设计</h3>
+          <p class="project-desc">品牌 identity 系统构建 · 合作俱乐部矩阵视觉 · 从 logo 到全场景落地，搭建欧宝体育的完整品牌语言体系</p>
+        </div>
+      </a>
+      <a href="projects/ob_brand/index.html" class="project-card reveal" id="card-ob">
+        <img src="projects/ob_brand/thumbnails/01.jpg" alt="OB品牌物料" loading="lazy" width="1000" height="750">
+        <div class="project-overlay">
+          <span class="project-cat">品牌物料 · 10 作品</span>
+          <h3 class="project-name">欧宝体育品牌物料</h3>
+          <p class="project-desc">内部宣传海报 · 赛事海报 · 球队物料 · 品牌手册 · 礼盒设计</p>
+        </div>
+      </a>
+      <a href="projects/hotel_vip/index.html" class="project-card reveal" id="card-hotel">
+        <img src="projects/hotel_vip/thumbnails/01.jpg" alt="玖鼎品牌宣传" loading="lazy" width="1000" height="683">
+        <div class="project-overlay">
+          <span class="project-cat">品牌宣传 · 24 作品</span>
+          <h3 class="project-name">玖鼎品牌宣传</h3>
+          <p class="project-desc">品牌视觉体系 · VIP服务物料 · 品牌手册 · 游艇出行宣传 · 全链路品牌设计</p>
+        </div>
+      </a>
+      <a href="projects/gift_packaging/index.html" class="project-card reveal" id="card-gift">
+        <img src="projects/gift_packaging/thumbnails/01.jpg" alt="玖鼎演唱会" loading="lazy" width="1000" height="687">
+        <div class="project-overlay">
+          <span class="project-cat">活动设计 · 11 作品</span>
+          <h3 class="project-name">玖鼎演唱会会员回馈</h3>
+          <p class="project-desc">演唱会宣传海报 · 会员年度回馈活动视觉 · 巨星联袂舞台呈现</p>
+        </div>
+      </a>
+      <a href="projects/company_weekly/index.html" class="project-card reveal" id="card-weekly">
+        <img src="projects/company_weekly/thumbnails/01.jpg" alt="玖鼎海报设计" loading="lazy" width="1000" height="687">
+        <div class="project-overlay">
+          <span class="project-cat">平面设计 · 13 作品</span>
+          <h3 class="project-name">玖鼎集团海报设计</h3>
+          <p class="project-desc">企业品牌海报 · 活动宣传海报 · 节日营销海报 · 全链路平面设计</p>
+        </div>
+      </a>
+      <a href="projects/hr_design/index.html" class="project-card reveal" id="card-hr">
+        <img src="projects/hr_design/thumbnails/01.jpg" alt="玖鼎网站UI设计" loading="lazy" width="1000" height="687">
+        <div class="project-overlay">
+          <span class="project-cat">UI设计 · 16 作品</span>
+          <h3 class="project-name">玖鼎集团网站UI设计</h3>
+          <p class="project-desc">官网首页 · 移动端界面 · 品牌落地页 · 全链路UI/UX设计</p>
+        </div>
+      </a>
+      <a href="projects/boxing/index.html" class="project-card reveal" id="card-boxing">
+        <img src="projects/boxing/thumbnails/01.jpg" alt="玖鼎礼盒设计" loading="lazy" width="1000" height="687">
+        <div class="project-overlay">
+          <span class="project-cat">包装设计 · 9 作品</span>
+          <h3 class="project-name">玖鼎集团礼盒设计</h3>
+          <p class="project-desc">节日礼盒 · 品牌定制包装 · VIP礼袋 · 全链路包装视觉设计</p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section id="skills">
+    <div class="skills-bg">SKILLS</div>
+    <div class="container">
+      <div class="section-label reveal">04 · 能力</div>
+      <h2 class="section-title reveal">核心<span class="red">技能</span></h2>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-group reveal">
+        <h3 class="skill-group-title">设计工具</h3>
+        <div class="skill-item-row"><span class="skill-name">Photoshop</span><div class="skill-track"><div class="skill-fill" data-width="90" style="width:0%"></div></div><span class="skill-pct">90</span></div>
+        <div class="skill-item-row"><span class="skill-name">Illustrator</span><div class="skill-track"><div class="skill-fill" data-width="85" style="width:0%"></div></div><span class="skill-pct">85</span></div>
+        <div class="skill-item-row"><span class="skill-name">Premiere</span><div class="skill-track"><div class="skill-fill" data-width="75" style="width:0%"></div></div><span class="skill-pct">75</span></div>
+        <div class="skill-item-row"><span class="skill-name">After Effects</span><div class="skill-track"><div class="skill-fill" data-width="70" style="width:0%"></div></div><span class="skill-pct">70</span></div>
+      </div>
+      <div class="skill-group reveal">
+        <h3 class="skill-group-title">专业领域</h3>
+        <div class="skill-item-row"><span class="skill-name">品牌设计</span><div class="skill-track"><div class="skill-fill" data-width="92" style="width:0%"></div></div><span class="skill-pct">92</span></div>
+        <div class="skill-item-row"><span class="skill-name">视觉海报</span><div class="skill-track"><div class="skill-fill" data-width="88" style="width:0%"></div></div><span class="skill-pct">88</span></div>
+        <div class="skill-item-row"><span class="skill-name">UI / 网页</span><div class="skill-track"><div class="skill-fill" data-width="80" style="width:0%"></div></div><span class="skill-pct">80</span></div>
+        <div class="skill-item-row"><span class="skill-name">包装设计</span><div class="skill-track"><div class="skill-fill" data-width="85" style="width:0%"></div></div><span class="skill-pct">85</span></div>
+      </div>
+      <div class="skill-group reveal">
+        <h3 class="skill-group-title">AI 与前沿</h3>
+        <div class="skill-item-row"><span class="skill-name">Midjourney</span><div class="skill-track"><div class="skill-fill" data-width="85" style="width:0%"></div></div><span class="skill-pct">85</span></div>
+        <div class="skill-item-row"><span class="skill-name">Stable Diffusion</span><div class="skill-track"><div class="skill-fill" data-width="78" style="width:0%"></div></div><span class="skill-pct">78</span></div>
+        <div class="skill-item-row"><span class="skill-name">即梦</span><div class="skill-track"><div class="skill-fill" data-width="82" style="width:0%"></div></div><span class="skill-pct">82</span></div>
+        <div class="skill-item-row"><span class="skill-name">CODEX</span><div class="skill-track"><div class="skill-fill" data-width="75" style="width:0%"></div></div><span class="skill-pct">75</span></div>
+      </div>
+    </div>
+    <div class="soft-banner reveal">
+      <div class="soft-item"><div class="soft-name">沟通表达</div><div class="soft-desc">善于调动气氛，清晰传达设计理念</div></div>
+      <div class="soft-item"><div class="soft-name">团队协作</div><div class="soft-desc">富有团队精神，适应跨部门沟通</div></div>
+      <div class="soft-item"><div class="soft-name">学习创新</div><div class="soft-desc">探索前沿设计趋势，快速学习新技能</div></div>
+      <div class="soft-item"><div class="soft-name">执行领导</div><div class="soft-desc">计划与执行能力强，具备团队领导力</div></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="contact-grid-bg"></div>
+    <div class="contact-bg-text">CONTACT</div>
+    <div class="container">
+      <div class="contact-inner">
+        <div class="reveal">
+          <p class="contact-label">05 · 联系方式</p>
+          <h2 class="contact-title">一起<br><span class="dark">创造些什么</span></h2>
+          <p class="contact-desc">无论是品牌设计、视觉创作还是AI辅助设计项目，都欢迎与我联系。期待与你的合作。</p>
+          <a href="https://t.me/Vaska_77" target="_blank" rel="noopener noreferrer" class="contact-btn">
+            Telegram 联系我
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+        </div>
+        <div class="contact-right reveal reveal-delay-1">
+          <div class="contact-cards">
+            <a href="https://t.me/Vaska_77" target="_blank" rel="noopener noreferrer" class="contact-card">
+              <div class="contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+              <div><div class="contact-card-label">Telegram</div><div class="contact-card-value">Vaska_77</div></div>
+            </a>
+            <a href="mailto:vaska9d@gmail.com" class="contact-card">
+              <div class="contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+              <div><div class="contact-card-label">Email</div><div class="contact-card-value">vaska9d@gmail.com</div></div>
+            </a>
+            <div class="contact-card">
+              <div class="contact-card-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+              <div><div class="contact-card-label">Location</div><div class="contact-card-value">菲律宾 · 马尼拉</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="footer reveal">
+        <span class="footer-text">© 2026 VASKA. ALL RIGHTS RESERVED.</span>
+        <span class="footer-tag">VISUAL DESIGNER · AI DESIGNER · BRAND DESIGNER</span>
+      </div>
+    </div>
+  </section>
+  </main>
+
+  <script>
+    const navbar = document.querySelector('nav');
+    let navScrollTicking = false;
+    window.addEventListener('scroll', () => {
+      if (!navScrollTicking) {
+        requestAnimationFrame(() => { navbar.classList.toggle('scrolled', window.scrollY > 50); navScrollTicking = false; });
+        navScrollTicking = true;
+      }
+    });
+    function toggleMenu() {
+      const links = document.querySelector('.nav-links');
+      if (links.style.display === 'flex') { links.style.display = 'none'; }
+      else { links.style.display = 'flex'; links.style.position = 'absolute'; links.style.top = '72px'; links.style.left = '0'; links.style.right = '0'; links.style.background = 'var(--black)'; links.style.flexDirection = 'column'; links.style.padding = '24px'; links.style.gap = '8px'; links.style.borderBottom = '1px solid rgba(255,255,255,0.06)'; links.style.zIndex = '99'; }
+    }
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          entry.target.querySelectorAll('.skill-fill').forEach(bar => { bar.style.width = bar.dataset.width + '%'; });
+        }
+      });
+    }, { threshold: 0.08 });
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function(e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+        const links = document.querySelector('.nav-links');
+        if (links.style.display === 'flex') links.style.display = 'none';
+      });
+    });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { document.querySelectorAll('.reveal').forEach(el => el.classList.add('visible')); }
+  </script>
+</body>
+</html>
