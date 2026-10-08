@@ -192,7 +192,7 @@
     }
 
     /* Giant horizontal title with 2026 background */
-    .hero-title-wrap { position: relative; margin-bottom: 36px; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 1.2em; }
+    .hero-title-wrap { position: relative; margin-bottom: 36px; width: 100%; display: flex; align-items: center; justify-content: center; min-height: 1.2em; overflow: visible; }
     .hero-year-bg {
       position: absolute; top: 50%; left: 50%;
       transform: translate(-50%, -50%);
@@ -609,24 +609,97 @@
       .hero-meta-item { font-size: 9px; padding: 4px 8px; }
     }
     @media (max-width: 768px) {
-      nav { padding: 0 24px; }
+      /* NAV */
+      nav { padding: 0 16px; }
       .nav-center { display: none; }
       .nav-links { display: none; }
       .nav-menu-btn { display: flex; align-items: center; justify-content: center; }
-      section { padding: 80px 0; }
-      .projects-grid { grid-template-columns: 1fr; }
-      .skills-grid { grid-template-columns: 1fr; }
-      .soft-banner { grid-template-columns: 1fr; padding: 32px; }
-      .hero-meta { gap: 0; }
-      .hero-meta-item { padding: 0 10px; font-size: 9px; }
+      /* SECTIONS */
+      section { padding: 60px 0; }
+      .container { padding: 0 16px; }
+      /* HERO */
+      .hero-content { padding: 0 16px; }
+      .hero-meta { left: 16px; right: 16px; top: 64px; }
+      .hero-meta-item { font-size: 8px; padding: 4px 8px; letter-spacing: 0.1em; }
+      .hero-meta-label { margin-left: 8px; font-size: 8px; }
+      .hero-sub { margin-top: 60px; margin-bottom: 32px; white-space: normal; overflow: visible; }
+      .hero-title-main {
+        font-size: clamp(2.2rem, 11vw, 3.8rem);
+        -webkit-text-stroke: 0;
+        color: var(--white);
+        letter-spacing: 0.04em;
+      }
+      .hero-title-main span { color: var(--red); }
+      .hero-year-bg { font-size: clamp(5rem, 28vw, 10rem); }
       .hud-corner { display: none; }
-      .hero-title-main { font-size: clamp(3rem, 15vw, 5rem); }
-      .hero-year-bg { font-size: clamp(9rem, 40vw, 14rem); }
+      .scroll-indicator { bottom: 24px; }
+      /* ABOUT */
+      .about-grid { gap: 40px; }
+      .about-heading { font-size: clamp(2rem, 6vw, 3rem); margin-bottom: 24px; }
+      /* EXPERIENCE */
+      .exp-item { grid-template-columns: 1fr; gap: 8px; }
+      .exp-year { font-size: 11px; }
+      .exp-title { font-size: 16px; }
+      .exp-body p { font-size: 13px; max-width: none; }
+      /* PROJECTS */
+      .project-overlay { padding: 24px; }
+      .project-name { font-size: clamp(1.2rem, 5vw, 1.8rem); }
+      .project-desc { opacity: 1; transform: none; font-size: 12px; max-width: none; }
+      .project-card:hover .project-desc { opacity: 1; transform: none; }
+      .project-year { font-size: 9px; top: 12px; right: 12px; padding: 3px 8px; }
+      /* SKILLS */
+      .skill-group { padding: 32px 20px; }
+      .skill-group-title { margin-bottom: 24px; font-size: 8px; letter-spacing: 0.2em; }
+      .skill-item-row { grid-template-columns: 100px 1fr 36px; padding: 14px 0; }
+      .skill-name { font-size: 12px; }
+      .skill-pct { font-size: 10px; min-width: 24px; }
+      /* SOFT BANNER */
+      .soft-banner { padding: 32px 16px; gap: 24px; }
+      .soft-name { font-size: 18px; margin-bottom: 6px; }
+      .soft-desc { font-size: 12px; }
+      /* CONTACT */
+      #contact { padding: 80px 0 60px; }
+      .contact-inner { gap: 48px; }
+      .contact-label { font-size: 9px; margin-bottom: 16px; }
+      .contact-title { font-size: clamp(2.6rem, 13vw, 5rem); margin-bottom: 16px; }
+      .contact-desc { font-size: 14px; margin-bottom: 32px; }
+      .contact-card { padding: 16px 16px; gap: 16px; }
+      .contact-card-icon { width: 32px; height: 32px; }
+      .contact-card-icon svg { width: 14px; height: 14px; }
+      .contact-card-value { font-size: 16px; }
+      .contact-btn { padding: 16px 28px; font-size: 12px; }
+      .contact-bg-text { font-size: clamp(8rem, 30vw, 20rem); bottom: -40px; }
+      .footer { flex-direction: column; align-items: flex-start; gap: 8px; padding-top: 20px; }
+      /* MENU OVERLAY (toggled via JS) */
+      .nav-links.menu-open {
+        display: flex !important;
+        flex-direction: column;
+        position: fixed;
+        inset: 72px 0 0 0;
+        background: rgba(10,10,10,0.98);
+        padding: 32px 24px;
+        gap: 0;
+        z-index: 98;
+        border-top: 1px solid rgba(255,255,255,0.06);
+      }
+      .nav-links.menu-open a {
+        font-size: 20px;
+        padding: 16px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.7);
+      }
+      .nav-links.menu-open a:hover { color: var(--white); }
+      .nav-links.menu-open .nav-cta { border-bottom: none; margin-top: 16px; }
     }
     @media (hover: none) and (pointer: coarse) {
       .nav-links a, .btn-red, .btn-outline, .contact-card, .contact-btn, .nav-menu-btn { min-height: 48px; }
       .nav-links { flex-direction: column; gap: 16px; }
       .nav-links a { font-size: 18px; padding: 12px 0; font-weight: 600; }
+      /* Show project description on touch */
+      .project-desc { opacity: 1; transform: none; }
+      /* Remove hover transforms on touch */
+      .contact-card:hover { transform: none; }
+      .exp-item:hover .exp-arrow { transform: none; color: rgba(255,255,255,0.06); }
     }
   </style>
 </head>
@@ -844,8 +917,8 @@
       <a href="projects/hr_design/index.html" class="project-card reveal" id="card-hr">
         <img src="projects/hr_design/thumbnails/01.jpg" alt="玖鼎网站UI设计" loading="lazy" width="1000" height="687">
         <div class="project-overlay">
-          <span class="project-cat">UI设计 · 16 作品</span>
-          <h3 class="project-name">玖鼎集团网站UI设计</h3>
+          <span class="project-cat">UI设计 · 22 作品</span>
+          <h3 class="project-name">网站UI设计</h3>
           <p class="project-desc">官网首页 · 移动端界面 · 品牌落地页 · 全链路UI/UX设计</p>
         </div>
       </a>
@@ -886,7 +959,7 @@
         <h3 class="skill-group-title">AI 与前沿</h3>
         <div class="skill-item-row"><span class="skill-name">Midjourney</span><div class="skill-track"><div class="skill-fill" data-width="85" style="width:0%"></div></div><span class="skill-pct">85</span></div>
         <div class="skill-item-row"><span class="skill-name">Stable Diffusion</span><div class="skill-track"><div class="skill-fill" data-width="78" style="width:0%"></div></div><span class="skill-pct">78</span></div>
-        <div class="skill-item-row"><span class="skill-name">即梦</span><div class="skill-track"><div class="skill-fill" data-width="82" style="width:0%"></div></div><span class="skill-pct">82</span></div>
+        <div class="skill-item-row"><span class="skill-name">AGENT</span><div class="skill-track"><div class="skill-fill" data-width="82" style="width:0%"></div></div><span class="skill-pct">82</span></div>
         <div class="skill-item-row"><span class="skill-name">CODEX</span><div class="skill-track"><div class="skill-fill" data-width="75" style="width:0%"></div></div><span class="skill-pct">75</span></div>
       </div>
     </div>
@@ -949,8 +1022,7 @@
     });
     function toggleMenu() {
       const links = document.querySelector('.nav-links');
-      if (links.style.display === 'flex') { links.style.display = 'none'; }
-      else { links.style.display = 'flex'; links.style.position = 'absolute'; links.style.top = '72px'; links.style.left = '0'; links.style.right = '0'; links.style.background = 'var(--black)'; links.style.flexDirection = 'column'; links.style.padding = '24px'; links.style.gap = '8px'; links.style.borderBottom = '1px solid rgba(255,255,255,0.06)'; links.style.zIndex = '99'; }
+      links.classList.toggle('menu-open');
     }
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
